@@ -516,41 +516,83 @@ time.sleep(.1)
 packetNumber, ipID, cbit, Nbit = decodePING(send4BytesToSerial(serial_port, getPING(packetNumber=0)))
 time.sleep(.1)
 decodeCommandResult(sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(START_MOTOR[0]))))
-time.sleep(1)
+time.sleep(3)
 
 rpmmean = 2000
 rpmamp = 200
 phase = 0
 sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmamp)),int16_to_int8(phase))
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))
-
+time.sleep(1)
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_START_WRITE],[[]])))
+time.sleep(2)
 res = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))
 decodeCommandResult(res)
 
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(GET_DBG_DATA[0])))
+arr = arr.view(np.int16)
+
+angle = arr[:1024]
+tarSpeed = arr[1024:2048]
+elangle = arr[2048:]
+
+FFOC = 1000
+elToMech = 7
+
+contAngle = np.zeros(len(angle))
+counter=0
+for i in range(len(angle)-1):
+    contAngle[i] = angle[i]-(-2**15)+(2**16)*counter
+    if angle[i+1]<angle[i]:
+        counter += 1
+contAngle = contAngle/(2**16)*360
+contAngleVelHz = np.diff(contAngle)*FFOC/360*10
+contAngleVelHz[contAngleVelHz>1000]=500;
+# contElAngle = np.zeros(len(elangle))
+# counter=0;
+# for i in range(len(elangle)-1):
+#     contElAngle[i] = elangle[i]-(-2**15)+(2**16)*counter
+#     if elangle[i+1]<elangle[i]:
+#         counter += 1
+# angleFromEl = contElAngle/elToMech/(2**16)*360
+# elVelHz = np.diff(angleFromEl)*FFOC/360*10
+
+inds = range(0,300)
+plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds])
+plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds])
+plt.grid(True)
+plt.show()
+#plt.pause(0.0001)
+#input("Press Enter to continue...")
+
+ser.close()
+pass
+
+
+
+
 
 
 # arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_STOPLL_EL_ANGLE, MC_REG_SPEED_REF])))
 # data = decodeRegValues(arr, [MC_REG_STOPLL_EL_ANGLE, MC_REG_SPEED_REF])
 
 
-FFOC = 2000
-elToMech = 7
-contElAngle = np.zeros(len(elAngle))
-counter=0
-for i in range(len(elAngle)-1):
-    contElAngle[i] = elAngle[i]-(-2**15)+(2**16)*counter
-    if elAngle[i+1]<elAngle[i]:
-        counter += 1
-angleFromEl = contElAngle/elToMech/(2**16)*360
-elVelHz = np.diff(angleFromEl)*FFOC/360*10
+# FFOC = 2000
+# elToMech = 7
+# contElAngle = np.zeros(len(elAngle))
+# counter=0
+# for i in range(len(elAngle)-1):
+#     contElAngle[i] = elAngle[i]-(-2**15)+(2**16)*counter
+#     if elAngle[i+1]<elAngle[i]:
+#         counter += 1
+# angleFromEl = contElAngle/elToMech/(2**16)*360
+# elVelHz = np.diff(angleFromEl)*FFOC/360*10
 
-inds = range(0,300)
-plt.plot(contElAngle[inds]-contElAngle[inds[0]], speedRef[inds])
-plt.plot(contElAngle[inds]-contElAngle[inds[0]], elVelHz[inds])
-plt.grid(True)
-plt.show()
+# inds = range(0,300)
+# plt.plot(contElAngle[inds]-contElAngle[inds[0]], speedRef[inds])
+# plt.plot(contElAngle[inds]-contElAngle[inds[0]], elVelHz[inds])
+# plt.grid(True)
+# plt.show()
 
     # time.sleep(2)
     # decodeCommandResult(sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(START_STOP[0]))))
@@ -594,38 +636,3 @@ plt.show()
 #                 flag=True
 #                 break
     
-#     angle = arr[:1024]
-#     tarSpeed = arr[1024:2048]
-    
-#     FFOC = 2000
-#     elToMech = 7
-#     elangle = arr[2048:]
-    
-#     contAngle = np.zeros(len(angle))
-#     counter=0
-#     for i in range(len(angle)-1):
-#         contAngle[i] = angle[i]-(-2**15)+(2**16)*counter
-#         if angle[i+1]<angle[i]:
-#             counter += 1
-#     contAngle = contAngle/(2**16)*360     
-#     contAngleVelHz = np.diff(contAngle)*FFOC/360*10
-#     contAngleVelHz[contAngleVelHz>1000]=500;
-#     # contElAngle = np.zeros(len(elangle))
-#     # counter=0;
-#     # for i in range(len(elangle)-1):
-#     #     contElAngle[i] = elangle[i]-(-2**15)+(2**16)*counter
-#     #     if elangle[i+1]<elangle[i]:
-#     #         counter += 1
-#     # angleFromEl = contElAngle/elToMech/(2**16)*360
-#     # elVelHz = np.diff(angleFromEl)*FFOC/360*10
-
-#     inds = range(0,300)
-#     plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds])
-#     plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds])
-#     plt.grid(True)
-#     plt.show()
-#     #plt.pause(0.0001)
-#     #input("Press Enter to continue...")
-    
-# ser.close()
-# pass
