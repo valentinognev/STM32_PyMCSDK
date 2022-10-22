@@ -547,7 +547,7 @@ for i in range(len(angle)-1):
         counter += 1
 contAngle = contAngle/(2**16)*360
 contAngleVelHz = np.diff(contAngle)*FFOC/360*10
-contAngleVelHz[contAngleVelHz>1000]=500;
+contAngleVelHz[contAngleVelHz>1000]=500
 # contElAngle = np.zeros(len(elangle))
 # counter=0;
 # for i in range(len(elangle)-1):
@@ -558,14 +558,15 @@ contAngleVelHz[contAngleVelHz>1000]=500;
 # elVelHz = np.diff(angleFromEl)*FFOC/360*10
 
 inds = range(0,300)
-plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds])
-plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds])
+plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds]/10*60,'x-')
+plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds]/10*60,'-o')
+plt.xlabel('RPM')
 plt.grid(True)
 plt.show()
 #plt.pause(0.0001)
 #input("Press Enter to continue...")
 
-ser.close()
+serial_port.close()
 pass
 
 
