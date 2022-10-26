@@ -515,18 +515,27 @@ version, DATA_CRC, RX_maxSize, TXS_maxSize, TXA_maxSize = decodeBEACON(send4Byte
 time.sleep(.1)
 packetNumber, ipID, cbit, Nbit = decodePING(send4BytesToSerial(serial_port, getPING(packetNumber=0)))
 time.sleep(.1)
+speedKp=35
+speedKi=50
+speedKd=0
+arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_KP,MC_REG_SPEED_KI,MC_REG_SPEED_KD],[speedKp,speedKi,speedKd])))
+time.sleep(.1)
+arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD])))  # set speed PID values
+time.sleep(.1)
+data = decodeRegValues(arr, [MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD])
+time.sleep(.1)
 decodeCommandResult(sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(START_MOTOR[0]))))
 time.sleep(3)
 
-rpmmean = 2000
+rpmmean = 1800
 rpmamp = 200
 phase = 0
 sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmamp)),int16_to_int8(phase))
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))
+arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
 time.sleep(1)
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_START_WRITE],[[]])))
+arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_START_WRITE],[[]])))    # Start Write
 time.sleep(2)
-res = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))
+res = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))                # Stop motor
 decodeCommandResult(res)
 
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(GET_DBG_DATA[0])))
@@ -537,7 +546,7 @@ tarSpeed = arr[1024:2048]
 elangle = arr[2048:]
 
 FFOC = 1000
-elToMech = 7
+elToMech = 12
 
 contAngle = np.zeros(len(angle))
 counter=0
