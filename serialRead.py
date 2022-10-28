@@ -515,8 +515,8 @@ version, DATA_CRC, RX_maxSize, TXS_maxSize, TXA_maxSize = decodeBEACON(send4Byte
 time.sleep(.1)
 packetNumber, ipID, cbit, Nbit = decodePING(send4BytesToSerial(serial_port, getPING(packetNumber=0)))
 time.sleep(.1)
-speedKp=35
-speedKi=50
+speedKp=80
+speedKi=10
 speedKd=0
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_KP,MC_REG_SPEED_KI,MC_REG_SPEED_KD],[speedKp,speedKi,speedKd])))
 time.sleep(.1)
@@ -537,15 +537,16 @@ arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_ST
 time.sleep(2)
 res = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))                # Stop motor
 decodeCommandResult(res)
-
+time.sleep(.5)
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(GET_DBG_DATA[0])))
 arr = arr.view(np.int16)
 
 angle = arr[:1024]
 tarSpeed = arr[1024:2048]
-elangle = arr[2048:]
+elangle = arr[2048:3072]
+encoderAngle = arr[3072:]
 
-FFOC = 1000
+SPEED_LOOP_FREQUENCY_HZ = 1000
 elToMech = 12
 
 contAngle = np.zeros(len(angle))
@@ -555,7 +556,7 @@ for i in range(len(angle)-1):
     if angle[i+1]<angle[i]:
         counter += 1
 contAngle = contAngle/(2**16)*360
-contAngleVelHz = np.diff(contAngle)*FFOC/360*10
+contAngleVelHz = np.diff(contAngle)*SPEED_LOOP_FREQUENCY_HZ/360*10
 contAngleVelHz[contAngleVelHz>1000]=500
 # contElAngle = np.zeros(len(elangle))
 # counter=0;
@@ -567,10 +568,13 @@ contAngleVelHz[contAngleVelHz>1000]=500
 # elVelHz = np.diff(angleFromEl)*FFOC/360*10
 
 inds = range(0,300)
+plt.subplot(2,1,1)
 plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds]/10*60,'x-')
 plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds]/10*60,'-o')
 plt.xlabel('RPM')
 plt.grid(True)
+plt.subplot(2,1,2)
+plt.plot(encoderAngle)
 plt.show()
 #plt.pause(0.0001)
 #input("Press Enter to continue...")
