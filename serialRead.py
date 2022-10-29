@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from IPython import get_ipython
 import time
+import math
 import threading
 
 ADDSENDDELAY = True
@@ -259,10 +260,12 @@ MC_REG_SPEED_SIN             = [np.uint16 ((23 << ELT_IDENTIFIER_POS) | TYPE_DAT
 SERIAL_READ_DATA=[]
 #######################################################################################
 def int32_to_int8(n):
+    n = int(n)
     mask = (1 << 8) - 1
     return [(n >> k) & mask for k in range(0, 32, 8)]
 #######################################################################################
 def int16_to_int8(n):
+    n = int(n)
     mask = (1 << 8) - 1
     return [(n >> k) & mask for k in range(0, 16, 8)]
 #######################################################################################
@@ -515,22 +518,31 @@ version, DATA_CRC, RX_maxSize, TXS_maxSize, TXA_maxSize = decodeBEACON(send4Byte
 time.sleep(.1)
 packetNumber, ipID, cbit, Nbit = decodePING(send4BytesToSerial(serial_port, getPING(packetNumber=0)))
 time.sleep(.1)
-speedKp=80
-speedKi=10
+speedKp=20000
+speedKpDiv = 2048/8
+speedKi=6000
+speedKiDiv = 16384
 speedKd=0
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_KP,MC_REG_SPEED_KI,MC_REG_SPEED_KD],[speedKp,speedKi,speedKd])))
+speedKdDiv = 16
+arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_KP,MC_REG_SPEED_KI,MC_REG_SPEED_KD,
+                                                                   MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV], 
+                                                                  [speedKp, speedKi, speedKd, 
+                                                                  math.log2(speedKpDiv), math.log2(speedKiDiv), math.log2(speedKdDiv)])))
 time.sleep(.1)
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD])))  # set speed PID values
+arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD,
+                                                                   MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])))  # set speed PID values
 time.sleep(.1)
-data = decodeRegValues(arr, [MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD])
+data = decodeRegValues(arr, [MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD, 
+                             MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])
 time.sleep(.1)
+
 decodeCommandResult(sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(START_MOTOR[0]))))
 time.sleep(3)
 
-rpmmean = 1800
-rpmamp = 200
+rpmmean = 2800
+rpmDoubleAmp = 200
 phase = 0
-sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmamp)),int16_to_int8(phase))
+sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(phase))
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
 time.sleep(1)
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_START_WRITE],[[]])))    # Start Write
