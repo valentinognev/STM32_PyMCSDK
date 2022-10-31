@@ -529,24 +529,30 @@ arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_
                                                                   [speedKp, speedKi, speedKd, 
                                                                   math.log2(speedKpDiv), math.log2(speedKiDiv), math.log2(speedKdDiv)])))
 time.sleep(.1)
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD,
-                                                                   MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])))  # set speed PID values
-time.sleep(.1)
-data = decodeRegValues(arr, [MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD, 
-                             MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])
-time.sleep(.1)
+# arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD,
+#                                                                    MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])))  # set speed PID values
+# data = decodeRegValues(arr, [MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD, 
+#                              MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])
+# time.sleep(.1)
 
 decodeCommandResult(sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(START_MOTOR[0]))))
-time.sleep(3)
+time.sleep(10)
 
-rpmmean = 2800
-rpmDoubleAmp = 200
+rpmmeanarr =      [2500, 2600, 2700, 2800, 2900, 3000, 2900, 2800, 2700, 2600]#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
+rpmDoubleAmparr = [ 300,  300,  300,  300,  300,  300,  300,  300,  300,  300]#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
+phaserr =         [10,    180,  270,   90,  135,  224,  355,    0,   25,   74]
+rpmmean = 2500
+rpmDoubleAmp = 300
 phase = 0
 sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(phase))
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
 time.sleep(1)
 arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_START_WRITE],[[]])))    # Start Write
-time.sleep(2)
+time.sleep(.01)
+for i in range(10):
+    sinParams = np.append(np.append(int32_to_int8(rpmmeanarr[i]),int16_to_int8(rpmDoubleAmparr[i])),int16_to_int8(phaserr[i]))
+    arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
+    time.sleep(.1)
 res = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))                # Stop motor
 decodeCommandResult(res)
 time.sleep(.5)
@@ -579,11 +585,12 @@ contAngleVelHz[contAngleVelHz>1000]=500
 # angleFromEl = contElAngle/elToMech/(2**16)*360
 # elVelHz = np.diff(angleFromEl)*FFOC/360*10
 
-inds = range(0,300)
+inds = range(0,900)
 plt.subplot(2,1,1)
 plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds]/10*60,'x-')
 plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds]/10*60,'-o')
-plt.xlabel('RPM')
+plt.ylabel('RPM')
+plt.xlabel('angle [deg]')
 plt.grid(True)
 plt.subplot(2,1,2)
 plt.plot(encoderAngle)
