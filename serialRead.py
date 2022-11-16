@@ -5,6 +5,7 @@ from IPython import get_ipython
 import time
 import math
 import threading
+from pynput import keyboard
 
 ADDSENDDELAY = True
 # get_ipython().run_line_magic('matplotlib', 'qt')
@@ -494,8 +495,10 @@ def setREG(regs, values, motorID = 1):
             regRequest = np.append(regRequest, values[ind])
 
     return np.array(regRequest, np.uint8)
-#######################################################################################
 
+#######################################################################################
+#######################################################################################
+#######################################################################################
 
 # comm = getCOMMAND(command=GET_MCP_VERSION)
 # createDATA_PACKET(comm)
@@ -536,46 +539,72 @@ time.sleep(.1)
 # time.sleep(.1)
 
 decodeCommandResult(sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(START_MOTOR[0]))))
-time.sleep(10)
+# time.sleep(10)
 
 rpmmeanarr =      [2500, 2600, 2700, 2800, 2900, 3000, 2900, 2800, 2700, 2600]#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
 rpmDoubleAmparr = [ 300,  300,  300,  300,  300,  300,  300,  300,  300,  300]#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
 phaserr =         [10,    180,  270,   90,  135,  224,  355,    0,   25,   74]
 rpmmean = 2500
-rpmDoubleAmp = 300
+rpmDoubleAmp = 200
 phase = 0
-sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(phase))
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
-time.sleep(1)
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_DBG_START_WRITE],[[]])))    # Start Write
-time.sleep(.01)
-for i in range(10):
-    sinParams = np.append(np.append(int32_to_int8(rpmmeanarr[i]),int16_to_int8(rpmDoubleAmparr[i])),int16_to_int8(phaserr[i]))
+
+while True:
+    with keyboard.Events() as events:
+        # Block for as much as possible
+        event = events.get(1e6)
+    if event.key == keyboard.KeyCode.from_char('n'):
+        sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(0)),int16_to_int8(0))
+    elif event.key == keyboard.KeyCode.from_char('q'):
+        break
+    elif str(event.key) == 'Key.up' or event.key == keyboard.KeyCode.from_char('w'):
+        sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(90))
+        print('Key up\n')
+    elif str(event.key) == 'Key.down' or event.key == keyboard.KeyCode.from_char('s'):
+        sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(270))
+        print('Key down\n')
+    elif str(event.key) == 'Key.left' or event.key == keyboard.KeyCode.from_char('a'):
+        sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(180))
+        print('Key left\n')
+    elif str(event.key) == 'Key.right' or event.key == keyboard.KeyCode.from_char('d'):
+        sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(0))
+        print('Key right\n')
     arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
-    time.sleep(.1)
+
+# for i in range(10):
+#     sinParams = np.append(np.append(int32_to_int8(rpmmeanarr[i]),int16_to_int8(rpmDoubleAmparr[i])),int16_to_int8(phaserr[i]))
+#     arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
+#     time.sleep(.1)
 res = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))                # Stop motor
-decodeCommandResult(res)
-time.sleep(.5)
-arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(GET_DBG_DATA[0])))
-arr = arr.view(np.int16)
+# decodeCommandResult(res)
+# time.sleep(.5)
+# arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getCOMMAND(GET_DBG_DATA[0])))
+# arr = arr.view(np.int16)
 
-angle = arr[:1024]
-tarSpeed = arr[1024:2048]
-elangle = arr[2048:3072]
-encoderAngle = arr[3072:]
+# angle = arr[:1024]
+# tarSpeed = arr[1024:2048]
+# elangle = arr[2048:3072]
+# encoderAngle = arr[3072:]
 
-SPEED_LOOP_FREQUENCY_HZ = 1000
-elToMech = 12
+# SPEED_LOOP_FREQUENCY_HZ = 1000
+# elToMech = 12
 
-contAngle = np.zeros(len(angle))
-counter=0
-for i in range(len(angle)-1):
-    contAngle[i] = angle[i]-(-2**15)+(2**16)*counter
-    if angle[i+1]<angle[i]:
-        counter += 1
-contAngle = contAngle/(2**16)*360
-contAngleVelHz = np.diff(contAngle)*SPEED_LOOP_FREQUENCY_HZ/360*10
-contAngleVelHz[contAngleVelHz>1000]=500
+# contAngle = np.zeros(len(angle))
+# counter=0
+# for i in range(len(angle)-1):
+#     contAngle[i] = angle[i]-(-2**15)+(2**16)*counter
+#     if angle[i+1]<angle[i]:
+#         counter += 1
+# contAngle = contAngle/(2**16)*360
+# contAngleVelHz = np.diff(contAngle)*SPEED_LOOP_FREQUENCY_HZ/360*10
+# contAngleVelHz[contAngleVelHz>1000]=500
+
+
+
+
+
+
+
+
 # contElAngle = np.zeros(len(elangle))
 # counter=0;
 # for i in range(len(elangle)-1):
@@ -585,18 +614,18 @@ contAngleVelHz[contAngleVelHz>1000]=500
 # angleFromEl = contElAngle/elToMech/(2**16)*360
 # elVelHz = np.diff(angleFromEl)*FFOC/360*10
 
-inds = range(0,900)
-plt.subplot(2,1,1)
-plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds]/10*60,'x-')
-plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds]/10*60,'-o')
-plt.ylabel('RPM')
-plt.xlabel('angle [deg]')
-plt.grid(True)
-plt.subplot(2,1,2)
-plt.plot(encoderAngle)
-plt.show()
-#plt.pause(0.0001)
-#input("Press Enter to continue...")
+# inds = range(0,900)
+# plt.subplot(2,1,1)
+# plt.plot(contAngle[inds]-contAngle[inds[0]],tarSpeed[inds]/10*60,'x-')
+# plt.plot(contAngle[inds]-contAngle[inds[0]],contAngleVelHz[inds]/10*60,'-o')
+# plt.ylabel('RPM')
+# plt.xlabel('angle [deg]')
+# plt.grid(True)
+# plt.subplot(2,1,2)
+# plt.plot(encoderAngle)
+# plt.show()
+# #plt.pause(0.0001)
+# #input("Press Enter to continue...")
 
 serial_port.close()
 pass
