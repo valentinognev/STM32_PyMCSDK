@@ -90,7 +90,8 @@ while not readSerialThread.isFinished():
     pass
 
 serial_data = readSerialThread.getSerialData()
-res = serial_data.view(np.float32)
+#res = serial_data.view(np.float32)
+res = serial_data.view(np.int16)
 
 # line=[]
 # while not flag:
