@@ -62,10 +62,10 @@ version, DATA_CRC, RX_maxSize, TXS_maxSize, TXA_maxSize = decodeBEACON(send4Byte
 time.sleep(.1)
 packetNumber, ipID, cbit, Nbit = decodePING(send4BytesToSerial(serial_portBG431, getPING(packetNumber=0)))
 time.sleep(.1)
-speedKp=20000
-speedKpDiv = 2048/8
+speedKp=15000
+speedKpDiv = 2048/8/2
 speedKi=6000
-speedKiDiv = 16384
+speedKiDiv = 16384/2
 speedKd=0
 speedKdDiv = 16
 arr = sendManyBytesToSerial(serial_portBG431, createDATA_PACKET(setREG([MC_REG_SPEED_KP,MC_REG_SPEED_KI,MC_REG_SPEED_KD,
@@ -110,36 +110,32 @@ f4data = getDataFromF4(serial_portF4)
 
 
 mecAngle = arr[:1024]
-tarSpeed = arr[1024:2048]
+tarSpeedHz = arr[1024:2048]/10
 elAngle = arr[2048:3072]
 
 encAngle = f4data[:1024]
-spiAngle = f4data[1024:]
+spiAngle = 360-f4data[1024:]/50
 
 SPEED_LOOP_FREQUENCY_HZ = 1000
 elToMech = 12
 
-contAngle = np.zeros(len(mecAngle))
-counter=0
-for i in range(len(mecAngle)-1):
-    contAngle[i] = mecAngle[i]-(-2**15)+(2**16)*counter
-    if mecAngle[i+1] < mecAngle[i]:
-        counter += 1
-contAngle = contAngle/(2**16)*360
-
 mecContAngle = intAngleToContinousAngle(mecAngle, -2**15, 2**16)
 elContAngle = intAngleToContinousAngle(elAngle, -2**15, 2**16)
-encContAngle = intAngleToContinousAngle(encAngle, 0, 2000)
+encContAngle = intAngleToContinousAngle(encAngle, 0, 4000)
+spiContAngle = intAngleToContinousAngle(spiAngle, 0, 360)
 contMecAngleSpeedHz = np.diff(mecContAngle)*SPEED_LOOP_FREQUENCY_HZ/360
 #contElAngleSpeedHz = np.diff(elContAngle)*FFOC/360*10
 contEncAngleSpeedHz = np.diff(encContAngle)*SPEED_LOOP_FREQUENCY_HZ/360
+window = 3
+contSpiAngleSpeedHz = (spiContAngle[window:]-spiContAngle[:-window])/window*SPEED_LOOP_FREQUENCY_HZ/360
 contMecAngleSpeedHz[contMecAngleSpeedHz > 1000] = 500
 # elVelHz = np.diff(angleFromEl)*FFOC/360*10
 
 inds = range(0,900)
 # plt.subplot(2,1,1)
-plt.plot(mecContAngle[inds]-mecContAngle[inds[0]], tarSpeed[inds]/10*60, 'x-')
+plt.plot(mecContAngle[inds]-mecContAngle[inds[0]], tarSpeedHz[inds]*60, 'x-')
 plt.plot(mecContAngle[inds]-mecContAngle[inds[0]], contMecAngleSpeedHz[inds]*60,'-o')
+plt.plot(spiContAngle[inds]-spiContAngle[inds[0]], contSpiAngleSpeedHz[inds]*60,'-o')
 # plt.plot(encContAngle[inds]-encContAngle[inds[0]], contEncAngleSpeedHz[inds]*60,'-o')
 plt.ylabel('RPM')
 plt.xlabel('angle [deg]')

@@ -24,16 +24,26 @@ version, DATA_CRC, RX_maxSize, TXS_maxSize, TXA_maxSize = decodeBEACON(send4Byte
 time.sleep(.1)
 packetNumber, ipID, cbit, Nbit = decodePING(send4BytesToSerial(serial_portBG431, getPING(packetNumber=0)))
 time.sleep(.1)
-speedKp=20000
-speedKpDiv = 2048/8
-speedKi=6000
-speedKiDiv = 16384
+# speedKp = 20000
+# speedKpDiv = 2048/8
+# speedKi = 6000
+# speedKiDiv = 16384
+# speedKd = 0
+# speedKdDiv = 16
+speedKp = 3500
+speedKpDiv = 32
+speedKi = 300
+speedKiDiv = 8192
 speedKd=0
 speedKdDiv = 16
+constant1_q = 0  # Feed forward q constant
+constant1_d = 0  # Feed forward d constant
+constant2_qd = 2   # Feed forward constant
+
 arr = sendManyBytesToSerial(serial_portBG431, createDATA_PACKET(setREG([MC_REG_SPEED_KP,MC_REG_SPEED_KI,MC_REG_SPEED_KD,
                                                                    MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV], 
                                                                   [speedKp, speedKi, speedKd, 
-                                                                  math.log2(speedKpDiv), math.log2(speedKiDiv), math.log2(speedKdDiv)])))
+                                                                   math.log2(speedKpDiv), math.log2(speedKiDiv), math.log2(speedKdDiv)])))
 time.sleep(.1)
 # arr = sendManyBytesToSerial(serial_port, createDATA_PACKET(getREG([MC_REG_SPEED_KP,  MC_REG_SPEED_KI, MC_REG_SPEED_KD,
 #                                                                    MC_REG_SPEED_KP_DIV, MC_REG_SPEED_KI_DIV, MC_REG_SPEED_KD_DIV])))  # set speed PID values
@@ -44,11 +54,12 @@ time.sleep(.1)
 decodeCommandResult(sendManyBytesToSerial(serial_portBG431, createDATA_PACKET(getCOMMAND(START_MOTOR[0]))))
 time.sleep(3)
 
-rpmmeanarr =      np.array([2500, 2600, 2700, 2800, 2900, 3000, 2900, 2800, 2700, 2600])*2#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
-rpmDoubleAmparr = np.array([ 300,  300,  300,  300,  300,  300,  300,  300,  300,  300])*2#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
-phaserr =         np.array([10,    180,  270,   90,  135,  224,  355,    0,   25,   74])
-rpmmean = 2500
-rpmDoubleAmp = 300
+rpmmean = 3000
+rpmDoubleAmp = 400
+
+rpmmeanarr =      np.array([2500, 2600, 2700, 2800, 2900, 3000, 2900, 2800, 2700, 2600])*0+rpmmean#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
+rpmDoubleAmparr = np.array([ 300,  300,  300,  300,  300,  300,  300,  300,  300,  300])*0+rpmDoubleAmp#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
+phaserr =         np.array([10,    180,  270,   90,  135,  224,  355,    0,   25,   74])*0
 phase = 0
 sinParams = np.append(np.append(int32_to_int8(rpmmean),int16_to_int8(rpmDoubleAmp)),int16_to_int8(phase))
 arr = sendManyBytesToSerial(serial_portBG431, createDATA_PACKET(setREG([MC_REG_SPEED_SIN],[sinParams])))   # Set sin
