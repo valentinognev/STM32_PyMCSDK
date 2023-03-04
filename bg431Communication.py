@@ -419,8 +419,20 @@ MC_REG_ASYNC_STLNK = [
     np.uint16((22 << ELT_IDENTIFIER_POS) | TYPE_DATA_RAW), TYPE_DATA_RAW]
 MC_REG_SPEED_SIN = [
     np.uint16((23 << ELT_IDENTIFIER_POS) | TYPE_DATA_RAW), TYPE_DATA_RAW]
+MC_REG_TORQUE_SIN = [
+    np.uint16((24 << ELT_IDENTIFIER_POS) | TYPE_DATA_RAW), TYPE_DATA_RAW]
 
 SERIAL_READ_DATA = []
+
+MCM_OBSERVING_MODE = np.uint8(0)
+MCM_OPEN_LOOP_VOLTAGE_MODE = np.uint8(1)
+MCM_OPEN_LOOP_CURRENT_MODE = np.uint8(2)
+MCM_SPEED_MODE = np.uint8(3)
+MCM_TORQUE_MODE = np.uint8(4)
+MCM_PROFILING_MODE = np.uint8(5)
+MCM_SHORTED_MODE = np.uint8(6)
+MCM_POSITION_MODE = np.uint8(7)
+MCM_MODE_NUM = np.uint8(8)            
 #######################################################################################
 
 
