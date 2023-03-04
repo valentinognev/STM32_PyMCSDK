@@ -420,6 +420,16 @@ MC_REG_ASYNC_STLNK = [
 MC_REG_SPEED_SIN = [
     np.uint16((23 << ELT_IDENTIFIER_POS) | TYPE_DATA_RAW), TYPE_DATA_RAW]
 
+MCM_OBSERVING_MODE = 0
+MCM_OPEN_LOOP_VOLTAGE_MODE = 1
+MCM_OPEN_LOOP_CURRENT_MODE = 2
+MCM_SPEED_MODE = 3        
+MCM_TORQUE_MODE = 4
+MCM_PROFILING_MODE = 5          
+MCM_SHORTED_MODE = 6            
+MCM_POSITION_MODE = 7          
+MCM_MODE_NUM = 8 
+
 SERIAL_READ_DATA = []
 #######################################################################################
 
