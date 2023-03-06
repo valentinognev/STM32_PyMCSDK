@@ -62,12 +62,16 @@ def NintendoPadIDs():
 
 
 class ControllerInput():
-    def __init__(self, controller_name, buttons):
+    def __init__(self, controller_name="Nintendo Switch Pro Controller", buttons=NintendoPadIDs()):
         self.buttons = buttons
         self.pad = struct
         self.pad.button = [False, False, False, False, False, False, False,
                            False, False, False, False, False, False, False, False, False, False]
         self.pad.axis = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        self.lastEvent = struct
+        self.lastEvent.type = 0
+        self.lastEvent.code = 0
+        self.lastEvent.value = 0
 
         devices = [evdev.InputDevice(fn) for fn in evdev.list_devices()]
         logging.debug("Found devices: " + str(len(devices)))
@@ -88,24 +92,42 @@ class ControllerInput():
     def events_get(self):
         for event in self.dev_obj.read_loop():
             if event.type != 0:
-                # print(event)
+                print(event)
                 self.update(event)
                 return
 
-    def checkEvens(self):
+    def flush_device(self):
+        self.dev_obj.flush_device_buffer()
+
+    def checkEvents(self):
         event = self.dev_obj.read_one()
         if event != None:
             if event.type != 0:
+                print(event)
                 self.update(event)
 
+    def clearEvent(self):
+        self.lastEvent.type = 0
+        self.lastEvent.code = 0
+        self.lastEvent.value = 0
+
     def update(self, event):
+        self.lastEvent.type = event.type
+        self.lastEvent.code = event.code
+        self.lastEvent.value = event.value
+
         for button in self.buttons:
             if event.code == self.buttons[button][0] and event.type == 1:
                 self.pad.button[self.buttons[button][2]] = event.value == 1
+                if event.value == 1:
+                    self.butEvent = [self.buttons[button][2], 1]
+                else:
+                    self.butEvent = [self.buttons[button][2], 0]
             if event.code == self.buttons[button][0] and event.type == 3:
                 self.pad.axis[self.buttons[button][2]] = event.value
-        return self.pad
+                self.axEvent = [self.buttons[button][2], event.value]
 
+        return self.pad
 
 if __name__ == "__main__":
     main()
