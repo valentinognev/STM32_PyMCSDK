@@ -24,7 +24,7 @@ if not DEBUG:
     time.sleep(.1)
 
 torquemean = 2000 # 3000
-torqueDoubleAmp = 2000 # 4500
+torqueDoubleAmp = 4000 # 4500
 phase = 0
 speedFac = 1.1
 TORQUEMAX = 3400
@@ -38,7 +38,8 @@ if not DEBUG:
 
 workState = False
 oldWorkState = False
-button = NintendoPadIDs()
+# button = NintendoPadIDs()
+button = GamePadPlusV3()
 controller = ControllerInput()
 oldevent = controller.lastEvent
 doit = False
@@ -65,33 +66,49 @@ while True:
         workState = False
 
     if event.code == button['Y'][0] and event.value == 1:
+        if DEBUG:
+            print("Y pressed")
         phase = 180
         doit = not doit
         controller.clearEvent()
     elif event.code == button['A'][0] and event.value == 1:
+        if DEBUG:
+            print("A pressed")
         phase = 0
         doit = not doit
         controller.clearEvent()
     elif event.code == button['X'][0] and event.value == 1:
+        if DEBUG:
+            print("X pressed")
         phase = 90
         doit = not doit
         controller.clearEvent()
     elif event.code == button['B'][0] and event.value == 1:
+        if DEBUG:
+            print("B pressed")
         phase = 270
         doit = not doit
         controller.clearEvent()
 
     if pad.axis[button['CrossY'][2]] < 0:
+        if DEBUG:
+            print("Cross Y Up")
         torquemean *= speedFac
         torquemean = min([torquemean, TORQUEMAX])
     elif pad.axis[button['CrossY'][2]] > 0:
+        if DEBUG:
+            print("Cross Y Down")
         torquemean /= speedFac
         torquemean = max([torquemean, TORQUEMIN])
 
     if pad.axis[button['CrossX'][2]] > 0:
+        if DEBUG:
+            print("Cross X Up")
         torqueDoubleAmp *= speedFac
         torqueDoubleAmp = min([torqueDoubleAmp, AMPMAX])
     elif pad.axis[button['CrossX'][2]] < 0:
+        if DEBUG:
+            print("Cross X Down")
         torqueDoubleAmp /= speedFac
         torqueDoubleAmp = max([torqueDoubleAmp, AMPMIN])
 

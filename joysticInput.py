@@ -10,8 +10,9 @@ import evdev
 import logging
 from select import select
 
-controller_name = "Nintendo Switch Pro Controller"
-#controller_name = "GamePadPlus V3 Consumer Control"
+DEFAULT_CONTROLLER_NAME = "Nintendo Switch Pro Controller"
+DEFAULT_CONTROLLER_NAME = "Xbox Wireless Controller"
+DEFAULT_CONTROLLER_NAME = "GamePadPlus V3"
 
 
 class struct:
@@ -19,9 +20,81 @@ class struct:
 
 
 def main():
-    controller = ControllerInput(controller_name, NintendoPadIDs())
+    controller = ControllerInput(DEFAULT_CONTROLLER_NAME, XboxWirelessIDs())
     while True:
         controller.events_get()
+
+def XboxWirelessIDs():
+    buttons = {
+        'LEFTx': [0, 3, 0],   # 'LEFT-X'
+        'LEFTy': [1, 3, 1],   # 'LEFT-Y'
+        'RIGHTy': [4, 3, 2],   # 'L2'
+        'RIGHTx': [3, 3, 3],   # 'RIGHT-X'
+        'CrossX': [16, 3, 4],   # 'DPAD-LEFT'
+        'CrossY': [17, 3, 5],   # 'DPAD-DOWN'
+        'cross': [305, 1, 0],  # 'CROSS', 'B'
+        'B': [305, 1, 0],  # 'CROSS', 'B'
+        'circle': [304, 1, 1],  # 'CIRCLE', 'A'
+        'A': [304, 1, 1],  # 'CIRCLE', 'A'
+        'triangle': [306, 1, 2],  # 'TRIANGLE', 'X'
+        'X': [306, 1, 2],  # 'TRIANGLE', 'X'
+        'square': [307, 1, 3],  # 'SQUARE', 'Y'
+        'Y': [307, 1, 3],  # 'SQUARE', 'Y'
+        'R': [309, 1, 4],  # 'R', RB', 'R1'
+        'RB': [309, 1, 4],  # 'R', RB', 'R1'
+        'L': [310, 1, 5],  # 'L1', LB
+        'LB': [308, 1, 5],  # 'L1', LB
+        'home': [139, 1, 6],  # 'home'
+        'plus': [311, 1, 7],  # 'plus', 'start'
+        'start': [311,  1, 7],  # 'plus', 'start'
+        'select': [310, 1, 8],  # 'SELECT', 'minus'
+        'minus': [310, 1, 8],  # 'SELECT', 'Minus'
+        'startT': [315, 1, 9],  # 'START', 'o'
+        'o': [315, 1, 9],  # 'START', 'o'
+        'LJ': [312, 1, 10],  # 'LJ', 'PS'
+        'RJ': [313, 1, 11],  # 'RJ', 'L3'
+        'ZL': [312, 1, 11],  # 'LT', 'ZL', R2'
+        'LT': [312, 1, 11],  # 'LT', 'ZL', R2'
+        'ZR': [313, 1, 12],  # 'ZR', 'RT', 'L2'
+        'RT': [313, 1, 12]}  # 'ZR', 'RT', 'L2'
+
+    return buttons
+
+def GamePadPlusV3():
+    buttons = {
+        'LEFTx': [0, 3, 0],   # 'LEFT-X'
+        'LEFTy': [1, 3, 1],   # 'LEFT-Y'
+        'RIGHTy': [4, 3, 2],   # 'L2'
+        'RIGHTx': [3, 3, 3],   # 'RIGHT-X'
+        'CrossX': [16, 3, 4],   # 'DPAD-LEFT'
+        'CrossY': [17, 3, 5],   # 'DPAD-DOWN'
+        'cross': [305, 1, 0],  # 'CROSS', 'B'
+        'B': [305, 1, 0],  # 'CROSS', 'B'
+        'circle': [304, 1, 1],  # 'CIRCLE', 'A'
+        'A': [304, 1, 1],  # 'CIRCLE', 'A'
+        'triangle': [307, 1, 2],  # 'TRIANGLE', 'X'
+        'X': [307, 1, 2],  # 'TRIANGLE', 'X'
+        'square': [308, 1, 3],  # 'SQUARE', 'Y'
+        'Y': [308, 1, 3],  # 'SQUARE', 'Y'
+        'R': [311, 1, 4],  # 'R', RB', 'R1'
+        'RB': [311, 1, 4],  # 'R', RB', 'R1'
+        'L': [310, 1, 5],  # 'L1', LB
+        'LB': [310, 1, 5],  # 'L1', LB
+        'home': [306, 1, 6],  # 'home'
+        'plus': [315, 1, 7],  # 'plus', 'start'
+        'start': [-1,  1, 7],  # 'plus', 'start'
+        'select': [314, 1, 8],  # 'SELECT', 'minus'
+        'minus': [314, 1, 8],  # 'SELECT', 'Minus'
+        'startT': [315, 1, 9],  # 'START', 'o'
+        'o': [315, 1, 9],  # 'START', 'o'
+        'LJ': [317, 1, 10],  # 'LJ', 'PS'
+        'RJ': [318, 1, 11],  # 'RJ', 'L3'
+        'ZL': [312, 1, 11],  # 'LT', 'ZL', R2'
+        'LT': [312, 1, 11],  # 'LT', 'ZL', R2'
+        'ZR': [313, 1, 12],  # 'ZR', 'RT', 'L2'
+        'RT': [313, 1, 12]}  # 'ZR', 'RT', 'L2'
+
+    return buttons
 
 
 def NintendoPadIDs():
@@ -60,9 +133,9 @@ def NintendoPadIDs():
 
     return buttons
 
-
+DEFAULT_BUTTONS = GamePadPlusV3()
 class ControllerInput():
-    def __init__(self, controller_name="Nintendo Switch Pro Controller", buttons=NintendoPadIDs()):
+    def __init__(self, controller_name=DEFAULT_CONTROLLER_NAME, buttons=DEFAULT_BUTTONS):
         self.buttons = buttons
         self.pad = struct
         self.pad.button = [False, False, False, False, False, False, False,

@@ -103,8 +103,8 @@ else:
     #                                                                         math.log2(torqueKpDiv), math.log2(torqueKiDiv), math.log2(torqueKdDiv)])))
     # time.sleep(.1)
 
-    torquemean = 3000
-    torqueDoubleAmp = 4500
+    torquemean = 2500
+    torqueDoubleAmp = 2000
 
     torquemeanarr =      np.array([100, 160, 160, 160, 160, 160, 160, 160, 160, 160])*0+torquemean#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
     torqueDoubleAmparr = np.array([ 30,  30,  50,  70,  80,  80,  80,  80,  80,  80])*0+torqueDoubleAmp#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
@@ -119,7 +119,7 @@ else:
         ind = i % len(torquemeanarr)
         sinParams = np.append(np.append(int32_to_int8(torquemeanarr[ind]),int16_to_int8(torqueDoubleAmparr[ind])),int16_to_int8(phaserr[ind]))
         arr = sendManyBytesToSerial(serial_portBG431, createDATA_PACKET(setREG([MC_REG_TORQUE_SIN],[sinParams])))   # Set sin
-        time.sleep(1)
+        time.sleep(.1)
 
 
 res = sendManyBytesToSerial(serial_portBG431, createDATA_PACKET(getCOMMAND(STOP_MOTOR[0])))                # Stop motor
@@ -133,7 +133,7 @@ tarSpeed = arr[1024:2048]
 elangle = arr[2048:3072]
 encoderAngle = arr[3072:]
 
-SPEED_LOOP_FREQUENCY_HZ = 2000
+SPEED_LOOP_FREQUENCY_HZ = 1000
 elToMech = 12
 
 window = 1
@@ -143,6 +143,7 @@ contMecAngleSpeedHz = (mecContAngle[window:]-mecContAngle[:-window])/window*SPEE
 elContAngle = intAngleToContinousAngle(elangle, -2**15, 2**16)/elToMech
 contElAngleSpeedHz = (elContAngle[window:]-elContAngle[:-window])/window*SPEED_LOOP_FREQUENCY_HZ/360
 
+window = 2
 encContAngle = intAngleToContinousAngle(encoderAngle, 0, 2000)
 encContAngleSpeedHz = (encContAngle[window:]-encContAngle[:-window])/window*SPEED_LOOP_FREQUENCY_HZ/360
 
