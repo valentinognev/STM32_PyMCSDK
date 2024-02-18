@@ -22,7 +22,7 @@ def intAngleToContinousAngle(angle: np.array, minValue: int, valSize: int) -> np
 #     [MC_REG_CONTROL_MODE, MC_REG_SPEED_KP, MC_REG_SPEED_REF], [STC_SPEED_MODE, 500, 300]))
 # baudrate=1843200,\
 serial_portBG431 = serial.Serial(
-port='/dev/ttyACM0',\
+port='/dev/ttyACM1',\
 baudrate=1843200,\
 parity=serial.PARITY_NONE,\
 stopbits=serial.STOPBITS_ONE,\
@@ -103,8 +103,8 @@ else:
     #                                                                         math.log2(torqueKpDiv), math.log2(torqueKiDiv), math.log2(torqueKdDiv)])))
     # time.sleep(.1)
 
-    torquemean = 2500
-    torqueDoubleAmp = 2000
+    torquemean = 2000
+    torqueDoubleAmp = 4000
 
     torquemeanarr =      np.array([100, 160, 160, 160, 160, 160, 160, 160, 160, 160])*0+torquemean#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
     torqueDoubleAmparr = np.array([ 30,  30,  50,  70,  80,  80,  80,  80,  80,  80])*0+torqueDoubleAmp#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
@@ -133,10 +133,10 @@ tarSpeed = arr[1024:2048]
 elangle = arr[2048:3072]
 encoderAngle = arr[3072:]
 
-SPEED_LOOP_FREQUENCY_HZ = 1000
+SPEED_LOOP_FREQUENCY_HZ = 2000
 elToMech = 12
 
-window = 1
+window = 2
 mecContAngle = intAngleToContinousAngle(angle, -2**15, 2**16)
 contMecAngleSpeedHz = (mecContAngle[window:]-mecContAngle[:-window])/window*SPEED_LOOP_FREQUENCY_HZ/360
 
@@ -155,7 +155,7 @@ encContAngleSpeedHz = (encContAngle[window:]-encContAngle[:-window])/window*SPEE
 
 # encContAngle = intAngleToContinousAngle(encoderAngle, 0, 2000)
 # contEncAngleSpeedHz = np.diff(encContAngle)*SPEED_LOOP_FREQUENCY_HZ/360
-
+serial_portBG431.close()
 
 inds = range(0,900)
 # plt.subplot(2,1,1)
@@ -163,6 +163,7 @@ inds = range(0,900)
 plt.plot(mecContAngle[inds]-mecContAngle[inds[0]],contMecAngleSpeedHz[inds]*60,'-bo')
 plt.plot(elContAngle[inds]-elContAngle[inds[0]],contElAngleSpeedHz[inds]*60,'-x')
 plt.plot(encContAngle[inds]-encContAngle[inds[0]],encContAngleSpeedHz[inds]*60,'--')
+plt.legend(['mech','el','enc'])
 plt.ylabel('RPM')
 plt.xlabel('angle [deg]')
 plt.grid(True)
@@ -172,7 +173,7 @@ plt.show()
 #plt.pause(0.0001)
 #input("Press Enter to continue...")
 
-serial_portBG431.close()
+
 pass
 
 
