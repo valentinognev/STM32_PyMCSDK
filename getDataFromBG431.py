@@ -104,7 +104,7 @@ else:
     # time.sleep(.1)
 
     torquemean = 2000
-    torqueDoubleAmp = 4000
+    torqueDoubleAmp = 2000
 
     torquemeanarr =      np.array([100, 160, 160, 160, 160, 160, 160, 160, 160, 160])*0+torquemean#[1800, 2500, 2000, 1600, 3000, 2500, 1900, 2100, 2300, 1800]
     torqueDoubleAmparr = np.array([ 30,  30,  50,  70,  80,  80,  80,  80,  80,  80])*0+torqueDoubleAmp#[100,   300,  200,  200,  300,  100,  150,  180,  200,  100]
